@@ -1,0 +1,28 @@
+# Generates PACKAGE_<var...> relative to the installed location of the package, these variable come from PATH_VARS of configure_package_config_file.
+@PACKAGE_INIT@
+
+#=======================================
+#                SETTINGS               
+#=======================================
+
+set_and_check(MODULEA_INCLUDE_DIRS "@PACKAGE_MODULEA_INCLUDES_DIR@")
+set_and_check(MODULEA_INCLUDE_DIR ${MODULEA_INCLUDE_DIRS})
+set_and_check(MODULEA_INCLUDE ${MODULEA_INCLUDE_DIRS})
+
+set_and_check(MODULEA_LIBRARY_DIRS "@PACKAGE_MODULEA_LIBRARY_DESTINATION@")
+set_and_check(MODULEA_LIBRARY_DIR ${MODULEA_LIBRARY_DIRS})
+
+set_and_check(MODULEA_CONFIG_DIR "@PACKAGE_MODULEA_CMAKE_CONFIG_DESTINATION@")
+
+find_library(MODULEA_LIBRARIES NAMES @MODULEA_TARGET_NAME@ PATHS ${MODULEA_LIBRARY_DIRS})
+set(MODULEA_LIBS ${MODULEA_LIBRARIES})
+
+#=======================================
+#                TARGET                
+#=======================================
+
+# Includes ModuleA target.
+include("${CMAKE_CURRENT_LIST_DIR}/@MODULEA_CMAKE_TARGETS_EXPORT_NAME@.cmake")
+
+# Checks whether Library components have been found, and if this is not the case, sets the MODULEA_FOUND variable to FALSE.
+check_required_components(ModuleA)
