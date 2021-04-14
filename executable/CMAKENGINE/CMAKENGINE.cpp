@@ -4,6 +4,6 @@
 
 int main()
 {
-	moduleA::ModuleA::module();
-	return EXIT_SUCCESS;
+    moduleA::ModuleA::module();
+    return EXIT_SUCCESS;
 }

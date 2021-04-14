@@ -7,7 +7,7 @@ namespace moduleA
 
 void ModuleA::module()
 {
-	std::cout << "ModuleA::module" << std::endl;
+    std::cout << "ModuleA::module" << std::endl;
 }
 
 }
