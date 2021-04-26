@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ModuleA_export.h"
+
 namespace moduleA
 {
 
@@ -8,7 +10,7 @@ class ModuleA
 
 public:
 
-    static void module();
+    MODULEA_EXPORT void module();
 
 };
 

@@ -9,17 +9,13 @@ project(ModuleA VERSION 1.0 LANGUAGES CXX)
 #                SETTINGS               
 #=======================================
 
+option(BUILD_SHARED_LIBS "If present and true, this will cause all libraries to be built shared unless the library was explicitly added as a static library" OFF)
+
 set(MODULEA_TARGET_NAME ${PROJECT_NAME})
 
 # Set the C standard.
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(C_STANDARD 11)
-
-# Export all symbols on Windows.
-if(MSVC OR MSVC90 OR MSVC10)
-  set(MSVC ON)
-  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-endif()
 
 # Set standard installation directories.
 set(MODULEA_RUNTIME_DESTINATION "bin")
@@ -60,13 +56,33 @@ add_library(
     ${MODULEA_HEADER_FILES}
     )
 
+# Generate the export header
+set(MODULEA_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
+file(MAKE_DIRECTORY ${MODULEA_GENERATED_DIR})
+
+set(MODULEA_EXPORT_FILE_NAME "${MODULEA_GENERATED_DIR}/${MODULEA_TARGET_NAME}_export.h")
+
+include(GenerateExportHeader)
+generate_export_header(
+    ${MODULEA_TARGET_NAME}
+    EXPORT_FILE_NAME ${MODULEA_EXPORT_FILE_NAME}
+    EXPORT_MACRO_NAME "MODULEA_EXPORT"
+)
+
 # Add include directory (includes may not be at the same place between build and install).
 target_include_directories(
     ${MODULEA_TARGET_NAME}
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${MODULEA_GENERATED_DIR}>
     $<INSTALL_INTERFACE:${MODULEA_INCLUDES_DIR}>
 )
+
+if(${BUILD_SHARED_LIBS})
+    target_compile_definitions(${MODULEA_TARGET_NAME} PRIVATE "ModuleA_EXPORTS")
+else()
+    target_compile_definitions(${MODULEA_TARGET_NAME} PRIVATE "MODULEA_STATIC_DEFINE")
+endif()
 
 #=======================================
 #                CONFIG                 
@@ -109,7 +125,9 @@ install(
 
 # Install the library.
 install(
-	FILES ${MODULEA_HEADER_FILES} 
+        FILES
+            ${MODULEA_HEADER_FILES}
+            ${MODULEA_EXPORT_FILE_NAME}
         DESTINATION ${MODULEA_INCLUDES_DESTINATION}
 	)
 
