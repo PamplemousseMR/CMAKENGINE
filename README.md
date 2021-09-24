@@ -2,6 +2,10 @@
 
 CMake sandbox.
 
+## CI
+
+![Build Status](https://github.com/PamplemousseMR/CMAKENGINE/actions/workflows/build.yml/badge.svg)
+
 ## Authors
 
 * **MANCIAUX Romain** - *Initial work* - [PamplemousseMR](https://github.com/PamplemousseMR).

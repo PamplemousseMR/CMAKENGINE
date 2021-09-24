@@ -1,0 +1,126 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.OS }}
+
+    strategy:
+      matrix:
+        name: [ubuntu_18-04_g++4-8, ubuntu_18-04_g++5, ubuntu_18-04_g++6, ubuntu_18-04_g++7, ubuntu_18-04_g++8, 
+               ubuntu_20-04_g++7, ubuntu_20-04_g++8, ubuntu_20-04_g++9, ubuntu_20-04_g++10,
+               macos_11_g++5, macos_11_g++6, macos_11_g++7, macos_11_g++8, macos_11_g++9, macos_11_g++10]
+        include:
+        - name: ubuntu_18-04_g++4-8
+          OS: ubuntu-18.04
+          COMPILER: g++-4.8
+
+        - name: ubuntu_18-04_g++5
+          OS: ubuntu-18.04
+          COMPILER: g++-5
+
+        - name: ubuntu_18-04_g++6
+          OS: ubuntu-18.04
+          COMPILER: g++-6
+
+        - name: ubuntu_18-04_g++7
+          OS: ubuntu-18.04
+          COMPILER: g++-7
+
+        - name: ubuntu_18-04_g++8
+          OS: ubuntu-18.04
+          COMPILER: g++-8
+
+        - name: ubuntu_20-04_g++7
+          OS: ubuntu-20.04
+          COMPILER: g++-7
+
+        - name: ubuntu_20-04_g++8
+          OS: ubuntu-20.04
+          COMPILER: g++-8
+
+        - name: ubuntu_20-04_g++9
+          OS: ubuntu-20.04
+          COMPILER: g++-9
+
+        - name: ubuntu_20-04_g++10
+          OS: ubuntu-20.04
+          COMPILER: g++-10
+
+        - name: macos_11_g++5
+          OS: macos-11
+          INSTALL: gcc@5
+          COMPILER: g++-5
+
+        - name: macos_11_g++6
+          OS: macos-11
+          INSTALL: gcc@6
+          COMPILER: g++-6
+
+        - name: macos_11_g++7
+          OS: macos-11
+          INSTALL: gcc@7
+          COMPILER: g++-7
+
+        - name: macos_11_g++8
+          OS: macos-11
+          INSTALL: gcc@8
+          COMPILER: g++-8
+
+        - name: macos_11_g++9
+          OS: macos-11
+          INSTALL: gcc@9
+          COMPILER: g++-9
+
+        - name: macos_11_g++10
+          OS: macos-11
+          INSTALL: gcc@10
+          COMPILER: g++-10
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Package
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+              sudo apt-get update
+              sudo apt-get --assume-yes install ${{ matrix.COMPILER }}
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+              echo "$RUNNER_OS not supported"
+              exit 1
+          else
+              brew install ${{ matrix.INSTALL }}
+          fi
+
+      - name: Configure ModuleA
+        run: |
+          cmake -B ${{github.workspace}}/build_modulea_debug -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install_modulea_debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=${{ matrix.COMPILER }} moduleA
+          cmake -B ${{github.workspace}}/build_modulea_release -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install_modulea_release -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=${{ matrix.COMPILER }} moduleA
+
+      - name: Build ModuleA
+        run: |
+          cmake --build ${{github.workspace}}/build_modulea_debug
+          cmake --build ${{github.workspace}}/build_modulea_release
+
+      - name: Install ModuleA
+        run: |
+          cmake --install ${{github.workspace}}/build_modulea_debug
+          cmake --install ${{github.workspace}}/build_modulea_release
+
+      - name: Configure Executable
+        run: |
+          cmake -B ${{github.workspace}}/build_debug -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install_debug -DCMAKE_PREFIX_PATH=${{github.workspace}}/install_modulea_debug -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=${{ matrix.COMPILER }} executable
+          cmake -B ${{github.workspace}}/build_release -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/install_release -DCMAKE_PREFIX_PATH=${{github.workspace}}/install_modulea_release -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=${{ matrix.COMPILER }} executable
+
+      - name: Build Executable
+        run: |
+          cmake --build ${{github.workspace}}/build_debug
+          cmake --build ${{github.workspace}}/build_release
+
+      - name: Install Executable
+        run: |
+          cmake --install ${{github.workspace}}/build_debug
+          cmake --install ${{github.workspace}}/build_release
